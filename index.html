@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talento Tech | Desarrollo de Talento Digital</title>
+    <!-- SEO & Metadata -->
+    <meta name="description" content="Inscríbete en los mejores bootcamps tecnológicos del país. Programación, IA, Datos y más para transformar tu carrera.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6D28D9;
+            --primary-dark: #4C1D95;
+            --accent: #2DD4BF;
+            --text-main: #1E293B;
+            --text-light: #64748B;
+            --bg-light: #F8FAFC;
+            --white: #FFFFFF;
+            --radius: 16px;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+        .section-padding { padding: 100px 0; }
+        
+        .btn {
+            display: inline-block;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            text-align: center;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--white);
+            box-shadow: 0 4px 14px rgba(109, 40, 217, 0.3);
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(109, 40, 217, 0.4);
+        }
+
+        /* Navbar */
+        nav {
+            padding: 24px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: absolute;
+            width: 100%;
+            z-index: 100;
+        }
+        .logo { font-size: 24px; font-weight: 800; color: var(--primary); text-decoration: none; }
+        .logo span { color: var(--text-main); }
+
+        /* Hero */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            background: radial-gradient(circle at top right, #EDE9FE 0%, #F8FAFC 60%);
+            position: relative;
+        }
+        .hero-content { max-width: 700px; animation: fadeInUp 1s ease-out; }
+        .hero h1 {
+            font-size: clamp(2.8rem, 5vw, 4.5rem);
+            line-height: 1.1;
+            margin-bottom: 24px;
+            color: var(--text-main);
+            font-weight: 800;
+        }
+        .hero h1 span { 
+            background: linear-gradient(90deg, var(--primary), #9333EA);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero p { font-size: 1.25rem; color: var(--text-light); margin-bottom: 40px; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Bootcamps Grid */
+        .grid-bootcamps {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+            margin-top: 60px;
+        }
+        .card {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+            border: 1px solid rgba(241, 245, 249, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary);
+        }
+        .card-icon {
+            width: 56px;
+            height: 56px;
+            background: #F5F3FF;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            color: var(--primary);
+            font-size: 28px;
+        }
+        .card h3 { margin-bottom: 12px; font-size: 22px; }
+        .card-level {
+            display: inline-block;
+            margin-top: 24px;
+            padding: 4px 12px;
+            background: #F0FDFA;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #0D9488;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Registration Form */
+        .reg-section {
+            background: #1E1B4B;
+            position: relative;
+            z-index: 1;
+            padding-bottom: 0;
+        }
+        .reg-container {
+            display: flex;
+            gap: 80px;
+            align-items: center;
+            flex-wrap: wrap;
+            padding-bottom: 100px;
+        }
+        .reg-info { flex: 1; color: var(--white); min-width: 300px; }
+        .reg-card {
+            flex: 1;
+            min-width: 380px;
+            background: var(--white);
+            padding: 48px;
+            border-radius: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transform: translateY(20px);
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-light);
+        }
+        .form-control {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #F1F5F9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: var(--transition);
+            background: #F8FAFC;
+        }
+        .form-control:focus {
+            background: var(--white);
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(109, 40, 217, 0.1);
+        }
+        .btn-submit { width: 100%; margin-top: 10px; font-size: 18px; }
+
+        /* Footer */
+        footer {
+            padding: 60px 0;
+            background: #0F172A;
+            color: #94A3B8;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .hero { text-align: center; padding-top: 120px; }
+            .hero-content { margin: 0 auto; }
+            .reg-card { min-width: 100%; padding: 32px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="container">
+        <a href="#" class="logo">Talento<span>Tech</span></a>
+        <a href="#registro" class="btn btn-primary" style="padding: 10px 20px; font-size: 14px;">Inscribirme</a>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>El futuro tecnológico se construye <span>hoy.</span></h1>
+                <p>Domina las herramientas más demandadas por el mercado laboral global con nuestros bootcamps intensivos de alto impacto.</p>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap; justify-content: flex-start;">
+                    <a href="#registro" class="btn btn-primary">👉 Comienza tu ruta</a>
+                    <a href="#bootcamps" class="btn" style="background:#fff; color:var(--text-main); border: 1px solid #E2E8F0;">Ver programas</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="bootcamps" class="section-padding">
+        <div class="container">
+            <div style="max-width: 600px; margin-bottom: 60px;">
+                <h2 style="font-size: 42px; margin-bottom: 16px; letter-spacing: -1px;">Áreas de formación</h2>
+                <p style="color: var(--text-light); font-size: 18px;">Programas diseñados por expertos de la industria para garantizar tu éxito profesional.</p>
+            </div>
+            
+            <div class="grid-bootcamps">
+                <!-- Programación -->
+                <div class="card">
+                    <div class="card-icon">💻</div>
+                    <h3>Programación</h3>
+                    <p>Web Full Stack, lógica y arquitectura de software para el mundo real.</p>
+                    <span class="card-level">Acceso Inmediato</span>
+                </div>
+                <!-- IA -->
+                <div class="card">
+                    <div class="card-icon">🤖</div>
+                    <h3>Inteligencia Artificial</h3>
+                    <p>Machine Learning, procesamiento de lenguaje natural y automatización.</p>
+                    <span class="card-level">Nivel Intermedio</span>
+                </div>
+                <!-- Análisis de Datos -->
+                <div class="card">
+                    <div class="card-icon">📊</div>
+                    <h3>Análisis de Datos</h3>
+                    <p>Big Data, visualización y estadística aplicada a negocios digitales.</p>
+                    <span class="card-level">Para Todos</span>
+                </div>
+                <!-- Blockchain -->
+                <div class="card">
+                    <div class="card-icon">🔗</div>
+                    <h3>Blockchain</h3>
+                    <p>Contratos inteligentes, criptografía y redes descentralizadas.</p>
+                    <span class="card-level">Tecnología Emergente</span>
+                </div>
+                <!-- Cloud Computing -->
+                <div class="card">
+                    <div class="card-icon">☁️</div>
+                    <h3>Cloud Computing</h3>
+                    <p>Gestión de infraestructura en la nube, AWS, Azure y escalabilidad.</p>
+                    <span class="card-level">Especializado</span>
+                </div>
+                <!-- Ciberseguridad -->
+                <div class="card">
+                    <div class="card-icon">🛡️</div>
+                    <h3>Ciberseguridad</h3>
+                    <p>Defensa de sistemas, hacking ético y protección de datos vitales.</p>
+                    <span class="card-level">Avanzado</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="registro" class="section-padding reg-section">
+        <div class="container reg-container">
+            <div class="reg-info">
+                <h2 style="font-size: 48px; margin-bottom: 24px; line-height: 1.2;">Reserva tu cupo en la élite digital.</h2>
+                <p style="font-size: 19px; opacity: 0.8; margin-bottom: 40px;">No solo aprenderás a usar la tecnología; aprenderás a liderarla. Nuestro proceso de inscripción toma menos de 20 segundos.</p>
+                
+                <div style="background: rgba(255,255,255,0.05); padding: 24px; border-radius: 20px; border-left: 4px solid var(--accent);">
+                    <p style="font-weight: 600; font-size: 15px;">“Solo necesitamos estos datos para contactarte y reservar tu cupo.”</p>
+                </div>
+            </div>
+
+            <div class="reg-card">
+                <form id="enrollmentForm">
+                    <div class="form-group">
+                        <label for="name">Nombre completo</label>
+                        <input type="text" id="name" class="form-control" placeholder="Nombre y Apellido" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contact">Contacto (Teléfono o WhatsApp)</label>
+                        <input type="tel" id="contact" class="form-control" placeholder="+57 300 000 0000" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Correo electrónico</label>
+                        <input type="email" id="email" class="form-control" placeholder="tu@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="city">Ciudad</label>
+                        <input type="text" id="city" class="form-control" placeholder="Ciudad de residencia" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bootcamp">Bootcamp de interés</label>
+                        <select id="bootcamp" class="form-control" required>
+                            <option value="">Selecciona una opción</option>
+                            <option value="prog">Programación</option>
+                            <option value="ia">Inteligencia Artificial</option>
+                            <option value="data">Análisis de Datos</option>
+                            <option value="blockchain">Blockchain</option>
+                            <option value="cloud">Cloud Computing</option>
+                            <option value="sec">Ciberseguridad</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-submit" id="submitBtn">Inscribirme ahora</button>
+                    
+                    <div id="successMsg" style="display:none; margin-top:20px; text-align:center; color:#059669; font-weight:600;">
+                        ¡Registro exitoso! Te contactaremos pronto.
+                    </div>
+                    
+                    <p style="text-align:center; font-size:12px; color:var(--text-light); margin-top:24px;">
+                        🔒 Tus datos están protegidos y son confidenciales.
+                    </p>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p style="font-weight: 700; margin-bottom: 8px;">Talento Tech 2026</p>
+            <p>Estrategia Nacional de Formación Tecnológica | Colombia Digital</p>
+        </div>
+    </footer>
+
+    <script>
+        const form = document.getElementById('enrollmentForm');
+        const btn = document.getElementById('submitBtn');
+        const success = document.getElementById('successMsg');
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            btn.disabled = true;
+            btn.innerText = 'Procesando...';
+
+            // Simulación de envío
+            setTimeout(() => {
+                form.style.opacity = '0.5';
+                form.style.pointerEvents = 'none';
+                success.style.display = 'block';
+                btn.innerText = '✅ Inscrito';
+                btn.style.background = '#10B981';
+                
+                // Efecto confeti visual simple
+                console.log('User Registered:', {
+                    name: document.getElementById('name').value,
+                    bootcamp: document.getElementById('bootcamp').value
+                });
+            }, 1200);
+        });
+    </script>
+</body>
+</html>
