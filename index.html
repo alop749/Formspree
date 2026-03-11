@@ -324,6 +324,64 @@
             margin-bottom: 40px;
         }
 
+        /* Auth Styles */
+        .auth-overlay {
+            text-align: center;
+            padding: 40px 20px;
+            background: rgba(109, 40, 217, 0.03);
+            border: 2px dashed #DDD6FE;
+            border-radius: 20px;
+            margin-bottom: 30px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .auth-tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .auth-tab.active {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .auth-form-container {
+            max-width: 350px;
+            margin: 0 auto;
+            text-align: left;
+        }
+
+        .user-nav {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #F1F5F9;
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: #EF4444;
+            cursor: pointer;
+            font-weight: 700;
+            padding: 0;
+            margin-left: 8px;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -337,6 +395,10 @@
         <a href="#" class="logo">Talento<span>Tech</span></a>
         <div style="display: flex; gap: 24px; align-items: center;">
             <a href="#comentarios" style="text-decoration: none; color: var(--text-main); font-weight: 600; font-size: 14px;">Comentarios</a>
+            <div id="nav-auth-container">
+                <!-- User UI will be injected here -->
+                <a href="#comentarios" class="btn btn-primary" style="padding: 10px 20px; font-size: 14px;">Iniciar Sesión</a>
+            </div>
             <a href="#registro" class="btn btn-primary" style="padding: 10px 20px; font-size: 14px;">Inscribirme</a>
         </div>
     </nav>
@@ -482,12 +544,37 @@
             </div>
 
             <div class="comments-container">
-                <!-- Formulario de Comentario -->
-                <div class="comment-form-container">
+                <!-- Sección de Autenticación / Registro para comentar -->
+                <div id="auth-section" class="auth-overlay">
+                    <h3 style="margin-bottom: 12px;">Únete a la conversación</h3>
+                    <p style="color: var(--text-light); margin-bottom: 24px;">Necesitas iniciar sesión o registrarte para compartir tu opinión con la comunidad.</p>
+                    
+                    <div class="auth-tabs">
+                        <div id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">Entrar</div>
+                        <div id="tab-signup" class="auth-tab" onclick="switchAuthTab('signup')">Registrarse</div>
+                    </div>
+
+                    <div class="auth-form-container">
+                        <form id="auth-form">
+                            <div class="form-group">
+                                <label for="auth-email">Correo Electrónico</label>
+                                <input type="email" id="auth-email" class="form-control" placeholder="tu@email.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="auth-password">Contraseña</label>
+                                <input type="password" id="auth-password" class="form-control" placeholder="••••••••" required>
+                            </div>
+                            <button type="submit" id="auth-submit-btn" class="btn btn-primary" style="width: 100%;">Entrar</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Formulario de Comentario (Oculto por defecto si no hay sesión) -->
+                <div id="comment-form-wrapper" class="comment-form-container" style="display: none;">
                     <form id="commentForm">
-                        <div class="form-group">
+                        <div class="form-group" style="display: none;">
                             <label for="comment-name">Tu Nombre</label>
-                            <input type="text" id="comment-name" class="form-control" placeholder="Ej: Juan Pérez" required>
+                            <input type="text" id="comment-name" class="form-control" placeholder="Ej: Juan Pérez">
                         </div>
                         <div class="form-group">
                             <label for="comment-text">Tu Comentario</label>
@@ -566,11 +653,88 @@
         const SUPABASE_KEY = 'sb_publishable_nTpO3y6mDzGWQfBNX8D0GA_TnTmRHOE';
         
         // El SDK de CDN expone 'supabase' como objeto global
+        // El SDK de CDN expone 'supabase' como objeto global
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const commentsList = document.getElementById('commentsList');
         const commentForm = document.getElementById('commentForm');
         const submitBtn = document.getElementById('submitComment');
+        const authSection = document.getElementById('auth-section');
+        const commentFormWrapper = document.getElementById('comment-form-wrapper');
+        const navAuthContainer = document.getElementById('nav-auth-container');
+        const authForm = document.getElementById('auth-form');
+        const authSubmitBtn = document.getElementById('auth-submit-btn');
+
+        let currentAuthMode = 'login';
+        let currentUser = null;
+
+        // Cambiar entre Login y Signup
+        window.switchAuthTab = (mode) => {
+            currentAuthMode = mode;
+            document.getElementById('tab-login').classList.toggle('active', mode === 'login');
+            document.getElementById('tab-signup').classList.toggle('active', mode === 'signup');
+            authSubmitBtn.innerText = mode === 'login' ? 'Entrar' : 'Crear Cuenta';
+        };
+
+        // Manejar Auth Form
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+
+            authSubmitBtn.disabled = true;
+            authSubmitBtn.innerText = 'Procesando...';
+
+            let result;
+            if (currentAuthMode === 'login') {
+                result = await _supabase.auth.signInWithPassword({ email, password });
+            } else {
+                result = await _supabase.auth.signUp({ email, password });
+            }
+
+            if (result.error) {
+                alert('Error: ' + result.error.message);
+                authSubmitBtn.disabled = false;
+                authSubmitBtn.innerText = currentAuthMode === 'login' ? 'Entrar' : 'Crear Cuenta';
+            } else {
+                if (currentAuthMode === 'signup') {
+                    alert('¡Cuenta creada! Revisa tu correo o inicia sesión.');
+                }
+                authForm.reset();
+            }
+        });
+
+        // Manejar Logout
+        window.handleLogout = async () => {
+            await _supabase.auth.signOut();
+        };
+
+        // Escuchar cambios de autenticación
+        _supabase.auth.onAuthStateChange((event, session) => {
+            currentUser = session?.user || null;
+            updateUI(currentUser);
+        });
+
+        function updateUI(user) {
+            if (user) {
+                authSection.style.display = 'none';
+                commentFormWrapper.style.display = 'block';
+                document.getElementById('comment-name').value = user.email.split('@')[0];
+                
+                navAuthContainer.innerHTML = `
+                    <div class="user-nav">
+                        <span>👋 ${user.email.split('@')[0]}</span>
+                        <button class="logout-btn" onclick="handleLogout()">Salir</button>
+                    </div>
+                `;
+            } else {
+                authSection.style.display = 'block';
+                commentFormWrapper.style.display = 'none';
+                navAuthContainer.innerHTML = `
+                    <a href="#comentarios" class="btn btn-primary" style="padding: 10px 20px; font-size: 14px;">Iniciar Sesión</a>
+                `;
+            }
+        }
 
         // Función para cargar comentarios
         async function loadComments() {
@@ -604,6 +768,12 @@
         // Manejar el envío del formulario
         commentForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            if (!currentUser) {
+                alert('Debes iniciar sesión para comentar.');
+                return;
+            }
+
             const name = document.getElementById('comment-name').value;
             const comment = document.getElementById('comment-text').value;
 
@@ -620,6 +790,7 @@
                 submitBtn.innerText = 'Publicar Comentario';
             } else {
                 commentForm.reset();
+                document.getElementById('comment-name').value = currentUser.email.split('@')[0];
                 submitBtn.disabled = false;
                 submitBtn.innerText = 'Publicar Comentario';
                 loadComments(); // Recargar la lista
@@ -628,6 +799,12 @@
 
         // Cargar inicial
         loadComments();
+
+        // Verificar sesión inicial
+        _supabase.auth.getSession().then(({ data: { session } }) => {
+            currentUser = session?.user || null;
+            updateUI(currentUser);
+        });
     </script>
     <script>
         (function () { if (!window.chatbase || window.chatbase("getState") !== "initialized") { window.chatbase = (...arguments) => { if (!window.chatbase.q) { window.chatbase.q = [] } window.chatbase.q.push(arguments) }; window.chatbase = new Proxy(window.chatbase, { get(target, prop) { if (prop === "q") { return target.q } return (...args) => target(prop, ...args) } }) } const onLoad = function () { const script = document.createElement("script"); script.src = "https://www.chatbase.co/embed.min.js"; script.id = "ChchjyVlTvv2Dy-Zqwlpn"; script.domain = "www.chatbase.co"; document.body.appendChild(script) }; if (document.readyState === "complete") { onLoad() } else { window.addEventListener("load", onLoad) } })();
