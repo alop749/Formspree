@@ -396,6 +396,67 @@
             margin-bottom: 20px;
             display: none;
             animation: fadeIn 0.3s ease-out;
+            line-height: 1.4;
+        }
+
+        .inline-alert-error {
+            background-color: #FFF1F2;
+            color: #BE123C;
+            border: 1px solid #FECDD3;
+        }
+
+        .inline-alert-warning {
+            background-color: #FFFBEB;
+            color: #B45309;
+            border: 1px solid #FEF3C7;
+        }
+
+        .inline-alert-success {
+            background-color: #F0FDF4;
+            color: #16A34A;
+            border: 1px solid #DCFCE7;
+        }
+
+        .inline-alert-info {
+            background-color: #F0F9FF;
+            color: #0284C7;
+            border: 1px solid #E0F2FE;
+        }
+
+        .inline-alert a {
+            color: inherit;
+            text-decoration: underline;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+
+        /* Password Wrapper */
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--text-light);
+            font-size: 18px;
+            user-select: none;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Inline Notification Styles */
+        .inline-alert {
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: none;
+            animation: fadeIn 0.3s ease-out;
         }
 
         .inline-alert-error {
@@ -588,7 +649,17 @@
                             </div>
                             <div class="form-group">
                                 <label for="auth-password">Contraseña</label>
-                                <input type="password" id="auth-password" class="form-control" placeholder="••••••••" required>
+                                <div class="password-wrapper">
+                                    <input type="password" id="auth-password" class="form-control" placeholder="••••••••" required>
+                                    <span class="password-toggle" onclick="togglePassword('auth-password')">👁️</span>
+                                </div>
+                            </div>
+                            <div class="form-group" id="confirm-password-group" style="display: none;">
+                                <label for="auth-confirm-password">Confirmar Contraseña</label>
+                                <div class="password-wrapper">
+                                    <input type="password" id="auth-confirm-password" class="form-control" placeholder="••••••••">
+                                    <span class="password-toggle" onclick="togglePassword('auth-confirm-password')">👁️</span>
+                                </div>
                             </div>
                             <button type="submit" id="auth-submit-btn" class="btn btn-primary" style="width: 100%;">Entrar</button>
                         </form>
@@ -704,38 +775,90 @@
         let currentAuthMode = 'login';
         let currentUser = null;
 
+        // Toggle Password Visibility
+        window.togglePassword = (id) => {
+            const el = document.getElementById(id);
+            const toggle = el.nextElementSibling;
+            if (el.type === 'password') {
+                el.type = 'text';
+                toggle.innerText = '👓';
+            } else {
+                el.type = 'password';
+                toggle.innerText = '👁️';
+            }
+        };
+
         // Cambiar entre Login y Signup
         window.switchAuthTab = (mode) => {
             currentAuthMode = mode;
             document.getElementById('tab-login').classList.toggle('active', mode === 'login');
             document.getElementById('tab-signup').classList.toggle('active', mode === 'signup');
             authSubmitBtn.innerText = mode === 'login' ? 'Entrar' : 'Crear Cuenta';
+            document.getElementById('confirm-password-group').style.display = mode === 'login' ? 'none' : 'block';
+            document.getElementById('auth-inline-alert').style.display = 'none';
         };
 
-        // Función para mostrar mensajes inline
-        function showInlineAlert(elementId, message, type = 'error') {
+        // Función para mostrar mensajes inline con soporte para acciones
+        function showInlineAlert(elementId, message, type = 'error', action = null) {
             const el = document.getElementById(elementId);
-            el.innerText = message;
+            el.innerHTML = message;
+            
+            if (action) {
+                const actionBtn = document.createElement('a');
+                actionBtn.innerText = action.label;
+                actionBtn.onclick = action.fn;
+                el.appendChild(actionBtn);
+            }
+
             el.className = `inline-alert inline-alert-${type}`;
             el.style.display = 'block';
             
-            // Ocultar después de 5 segundos si es éxito
-            if (type === 'success') {
+            // Ocultar después de unos segundos si es éxito
+            if (type === 'success' || (type === 'info' && !action)) {
                 setTimeout(() => {
-                    el.style.display = 'none';
-                }, 5000);
+                    if (el.className.includes('inline-alert-success') || el.className.includes('inline-alert-info')) {
+                        el.style.display = 'none';
+                    }
+                }, 3000);
             }
         }
 
         // Manejar Auth Form
         authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('auth-email').value;
+            const email = document.getElementById('auth-email').value.trim();
             const password = document.getElementById('auth-password').value;
+            const confirmPassword = document.getElementById('auth-confirm-password').value;
             const alertId = 'auth-inline-alert';
 
             // Limpiar alertas previas
             document.getElementById(alertId).style.display = 'none';
+
+            // VALIDACIONES FRONTEND
+            if (!email || !password) {
+                showInlineAlert(alertId, '⚠️ Completa tu correo y contraseña.', 'error');
+                return;
+            }
+
+            if (currentAuthMode === 'signup') {
+                // Email format
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    showInlineAlert(alertId, '❌ Ingresa un correo electrónico válido.', 'error');
+                    return;
+                }
+                // Password strength
+                const passRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+                if (!passRegex.test(password)) {
+                    showInlineAlert(alertId, '🔒 La contraseña debe tener al menos 8 caracteres, una mayúscula y un número.', 'error');
+                    return;
+                }
+                // Confirmation
+                if (password !== confirmPassword) {
+                    showInlineAlert(alertId, '❌ Las contraseñas no coinciden.', 'error');
+                    return;
+                }
+            }
 
             authSubmitBtn.disabled = true;
             authSubmitBtn.innerText = 'Procesando...';
@@ -748,16 +871,57 @@
             }
 
             if (result.error) {
-                showInlineAlert(alertId, 'Error: ' + result.error.message, 'error');
+                const err = result.error;
+                console.log('Supabase Error:', err);
+
+                // Mapear Errores de Supabase
+                if (err.status === 400) {
+                    if (err.message.includes('Invalid login credentials')) {
+                        showInlineAlert(alertId, '❌ Correo o contraseña incorrectos.', 'error');
+                    } else if (err.message.includes('Email not confirmed')) {
+                        showInlineAlert(alertId, '📩 Debes verificar tu correo antes de iniciar sesión. ', 'warning', {
+                            label: '[Reenviar correo]',
+                            fn: () => resendMagicLink(email)
+                        });
+                    } else if (err.message.includes('User already registered')) {
+                        showInlineAlert(alertId, '⚠️ Este correo ya tiene una cuenta. ', 'error', {
+                            label: '[Iniciar sesión]',
+                            fn: () => switchAuthTab('login')
+                        });
+                    } else {
+                        showInlineAlert(alertId, '⚠️ ' + err.message, 'error');
+                    }
+                } else if (err.status === 429) {
+                    showInlineAlert(alertId, '⏳ Demasiados intentos. Intenta nuevamente en unos minutos.', 'error');
+                } else {
+                    showInlineAlert(alertId, '❌ ' + err.message, 'error');
+                }
+
                 authSubmitBtn.disabled = false;
                 authSubmitBtn.innerText = currentAuthMode === 'login' ? 'Entrar' : 'Crear Cuenta';
             } else {
                 if (currentAuthMode === 'signup') {
-                    showInlineAlert(alertId, '¡Cuenta creada! Revisa tu correo o inicia sesión.', 'success');
+                    showInlineAlert(alertId, '✅ Cuenta creada correctamente. Revisa tu correo para verificarla.', 'success');
+                    authForm.reset();
+                } else {
+                    showInlineAlert(alertId, '✅ Sesión iniciada correctamente.', 'success');
                 }
-                authForm.reset();
+                authSubmitBtn.disabled = false;
+                authSubmitBtn.innerText = currentAuthMode === 'login' ? 'Entrar' : 'Crear Cuenta';
             }
         });
+
+        async function resendMagicLink(email) {
+            const { error } = await _supabase.auth.resend({
+                type: 'signup',
+                email: email
+            });
+            if (error) {
+                showInlineAlert('auth-inline-alert', '❌ Error al reenviar: ' + error.message, 'error');
+            } else {
+                showInlineAlert('auth-inline-alert', '📧 Correo de verificación reenviado.', 'success');
+            }
+        }
 
         // Manejar Logout
         window.handleLogout = async () => {
@@ -827,7 +991,13 @@
             document.getElementById(alertId).style.display = 'none';
             
             if (!currentUser) {
-                showInlineAlert(alertId, 'Debes iniciar sesión para poder comentar.', 'error');
+                showInlineAlert(alertId, '🔐 Debes iniciar sesión para comentar. ', 'error', {
+                    label: '[Iniciar sesión]',
+                    fn: () => {
+                        window.location.hash = 'comentarios';
+                        switchAuthTab('login');
+                    }
+                });
                 return;
             }
 
@@ -842,7 +1012,11 @@
                 .insert([{ name, comment }]);
 
             if (error) {
-                showInlineAlert(alertId, 'Hubo un error al publicar el comentario: ' + error.message, 'error');
+                if (error.message.includes('JWT expired') || error.status === 401) {
+                    showInlineAlert(alertId, '⚠️ Tu sesión ha expirado. Inicia sesión nuevamente.', 'error');
+                } else {
+                    showInlineAlert(alertId, 'Hubo un error al publicar el comentario: ' + error.message, 'error');
+                }
                 submitBtn.disabled = false;
                 submitBtn.innerText = 'Publicar Comentario';
             } else {
@@ -850,7 +1024,7 @@
                 document.getElementById('comment-name').value = currentUser.email.split('@')[0];
                 submitBtn.disabled = false;
                 submitBtn.innerText = 'Publicar Comentario';
-                showInlineAlert(alertId, '¡Comentario publicado con éxito!', 'success');
+                showInlineAlert(alertId, '✅ ¡Comentario publicado con éxito!', 'success');
                 loadComments(); // Recargar la lista
             }
         });
