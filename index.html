@@ -386,6 +386,29 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* Inline Notification Styles */
+        .inline-alert {
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .inline-alert-error {
+            background-color: #FEF2F2;
+            color: #EF4444;
+            border: 1px solid #FEE2E2;
+        }
+
+        .inline-alert-success {
+            background-color: #F0FDF4;
+            color: #16A34A;
+            border: 1px solid #DCFCE7;
+        }
     </style>
 </head>
 
@@ -525,6 +548,8 @@
 
                     <button type="submit" class="btn btn-primary btn-submit" id="submitBtn">Inscribirme ahora</button>
 
+                    <div id="enrollment-inline-alert" class="inline-alert" style="margin-top: 20px;"></div>
+                    
                     <div id="successMsg"
                         style="display:none; margin-top:20px; text-align:center; color:#059669; font-weight:600;">
                         ¡Registro exitoso! Te contactaremos pronto.
@@ -555,6 +580,7 @@
                     </div>
 
                     <div class="auth-form-container">
+                        <div id="auth-inline-alert" class="inline-alert"></div>
                         <form id="auth-form">
                             <div class="form-group">
                                 <label for="auth-email">Correo Electrónico</label>
@@ -571,6 +597,7 @@
 
                 <!-- Formulario de Comentario (Oculto por defecto si no hay sesión) -->
                 <div id="comment-form-wrapper" class="comment-form-container" style="display: none;">
+                    <div id="comment-inline-alert" class="inline-alert"></div>
                     <form id="commentForm">
                         <div class="form-group" style="display: none;">
                             <label for="comment-name">Tu Nombre</label>
@@ -630,16 +657,25 @@
                     form.reset();
                 } else {
                     const data = await response.json();
+                    let errMsg = "Hubo un error al enviar el formulario.";
                     if (Object.hasOwn(data, 'errors')) {
-                        alert(data["errors"].map(error => error["message"]).join(", "));
-                    } else {
-                        alert("Hubo un error al enviar el formulario.");
+                        errMsg = data["errors"].map(error => error["message"]).join(", ");
                     }
+                    
+                    const alertEl = document.getElementById('enrollment-inline-alert');
+                    alertEl.innerText = errMsg;
+                    alertEl.className = 'inline-alert inline-alert-error';
+                    alertEl.style.display = 'block';
+
                     btn.disabled = false;
                     btn.innerText = 'Inscribirme ahora';
                 }
             } catch (error) {
-                alert("Ocurrió un error de conexión.");
+                const alertEl = document.getElementById('enrollment-inline-alert');
+                alertEl.innerText = "Ocurrió un error de conexión.";
+                alertEl.className = 'inline-alert inline-alert-error';
+                alertEl.style.display = 'block';
+                
                 btn.disabled = false;
                 btn.innerText = 'Inscribirme ahora';
             }
@@ -676,11 +712,30 @@
             authSubmitBtn.innerText = mode === 'login' ? 'Entrar' : 'Crear Cuenta';
         };
 
+        // Función para mostrar mensajes inline
+        function showInlineAlert(elementId, message, type = 'error') {
+            const el = document.getElementById(elementId);
+            el.innerText = message;
+            el.className = `inline-alert inline-alert-${type}`;
+            el.style.display = 'block';
+            
+            // Ocultar después de 5 segundos si es éxito
+            if (type === 'success') {
+                setTimeout(() => {
+                    el.style.display = 'none';
+                }, 5000);
+            }
+        }
+
         // Manejar Auth Form
         authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
+            const alertId = 'auth-inline-alert';
+
+            // Limpiar alertas previas
+            document.getElementById(alertId).style.display = 'none';
 
             authSubmitBtn.disabled = true;
             authSubmitBtn.innerText = 'Procesando...';
@@ -693,12 +748,12 @@
             }
 
             if (result.error) {
-                alert('Error: ' + result.error.message);
+                showInlineAlert(alertId, 'Error: ' + result.error.message, 'error');
                 authSubmitBtn.disabled = false;
                 authSubmitBtn.innerText = currentAuthMode === 'login' ? 'Entrar' : 'Crear Cuenta';
             } else {
                 if (currentAuthMode === 'signup') {
-                    alert('¡Cuenta creada! Revisa tu correo o inicia sesión.');
+                    showInlineAlert(alertId, '¡Cuenta creada! Revisa tu correo o inicia sesión.', 'success');
                 }
                 authForm.reset();
             }
@@ -768,9 +823,11 @@
         // Manejar el envío del formulario
         commentForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const alertId = 'comment-inline-alert';
+            document.getElementById(alertId).style.display = 'none';
             
             if (!currentUser) {
-                alert('Debes iniciar sesión para comentar.');
+                showInlineAlert(alertId, 'Debes iniciar sesión para poder comentar.', 'error');
                 return;
             }
 
@@ -785,7 +842,7 @@
                 .insert([{ name, comment }]);
 
             if (error) {
-                alert('Hubo un error al publicar el comentario: ' + error.message);
+                showInlineAlert(alertId, 'Hubo un error al publicar el comentario: ' + error.message, 'error');
                 submitBtn.disabled = false;
                 submitBtn.innerText = 'Publicar Comentario';
             } else {
@@ -793,6 +850,7 @@
                 document.getElementById('comment-name').value = currentUser.email.split('@')[0];
                 submitBtn.disabled = false;
                 submitBtn.innerText = 'Publicar Comentario';
+                showInlineAlert(alertId, '¡Comentario publicado con éxito!', 'success');
                 loadComments(); // Recargar la lista
             }
         });
